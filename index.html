@@ -3,19 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Marketing Quiz</title>
+    <title>Digital Marketing Quiz - Instant Feedback</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        #quiz-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 90%; max-width: 600px; }
-        h2 { color: #2c3e50; margin-top: 0; font-size: 1.2rem; }
-        .option { display: block; background: #ecf0f1; margin: 10px 0; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.3s; border: 2px solid transparent; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        #quiz-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 95%; max-width: 600px; }
+        h2 { color: #2c3e50; font-size: 1.2rem; line-height: 1.4; }
+        .option { display: block; background: #ecf0f1; margin: 10px 0; padding: 14px; border-radius: 8px; cursor: pointer; transition: 0.2s; border: 2px solid transparent; position: relative; }
         .option:hover { background: #d5dbdb; }
-        .selected { background: #3498db !important; color: white; }
-        #next-btn, #restart-btn { background: #27ae60; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; float: right; margin-top: 20px; font-weight: bold; }
-        #next-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
-        #progress { margin-bottom: 20px; font-size: 0.9rem; color: #7f8c8d; }
+        
+        /* Κλάσεις ανατροφοδότησης */
+        .correct { background: #2ecc71 !important; color: white; border-color: #27ae60; }
+        .wrong { background: #e74c3c !important; color: white; border-color: #c0392b; }
+        .disabled { pointer-events: none; }
+
+        #next-btn { background: #3498db; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; float: right; margin-top: 20px; font-weight: bold; display: none; }
+        #progress { margin-bottom: 20px; font-size: 0.9rem; color: #7f8c8d; font-weight: bold; }
         .result-screen { text-align: center; }
-        .score { font-size: 2.5rem; color: #2ecc71; font-weight: bold; }
+        .score { font-size: 3rem; color: #2ecc71; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -23,13 +27,14 @@
 <div id="quiz-container">
     <div id="progress">Ερώτηση 1 από 50</div>
     <div id="question-area">
-        <h2 id="question-text">Φόρτωση ερώτησης...</h2>
+        <h2 id="question-text">Φόρτωση...</h2>
         <div id="options-list"></div>
     </div>
-    <button id="next-btn" onclick="nextQuestion()" disabled>Επόμενη</button>
+    <button id="next-btn" onclick="nextQuestion()">Επόμενη Ερώτηση</button>
 </div>
 
 <script>
+    // Δεδομένα ερωτήσεων από το υλικό σου
     const allQuestions = [
         { q: "Ποιος είναι ο βασικός στόχος του Social Media Marketing;", a: ["Δημιουργία φυσικών καταστημάτων", "Αλληλεπίδραση με το κοινό και προώθηση του brand", "Ανάπτυξη εφαρμογών λογισμικού", "Παρακολούθηση ανταγωνισμού χωρίς ανάλυση"], correct: 1 },
         { q: "Ποιο από τα παρακάτω είναι κοινωνικό δίκτυο κατάλληλο για επαγγελματική δικτύωση;", a: ["Instagram", "TikTok", "LinkedIn", "Pinterest"], correct: 2 },
@@ -44,111 +49,4 @@
         { q: "Ποιος είναι ο βασικός στόχος ενός διαγωνισμού στο Instagram;", a: ["Να κερδίσουν όλοι οι συμμετέχοντες", "Να γεμίσει το προφίλ με τυχαία σχόλια", "Να αυξηθεί το engagement και οι ακόλουθοι", "Να δοθούν δώρα σε υπαλλήλους"], correct: 2 },
         { q: "Τι είναι το “organic reach”;", a: ["Πληρωμένη διαφήμιση", "Προβολές που προκύπτουν χωρίς διαφήμιση", "Αναφορές σε ιστολόγια", "Σχόλια με hashtags"], correct: 1 },
         { q: "Ποια πλατφόρμα είναι πιο κατάλληλη για σύντομα βίντεο με viral περιεχόμενο;", a: ["LinkedIn", "Pinterest", "Facebook", "TikTok"], correct: 3 },
-        { q: "Τι σημαίνει ROI στο Social Media Marketing;", a: ["Ρυθμός Οπτικής Ικανοποίησης", "Return on Investment (Απόδοση επένδυσης)", "Ραδιοφωνική Οργάνωση Ιδεών", "Ρυθμός Ορίων Ιστοσελίδας"], correct: 1 },
-        { q: "Ποιο από τα παρακάτω βοηθά στην αύξηση των followers;", a: ["Αποφυγή αναρτήσεων", "Αγνόηση σχολίων", "Μονότονο περιεχόμενο", "Συχνή και ποιοτική δημοσίευση"], correct: 3 },
-        { q: "Τι είναι το content marketing;", a: ["Δημιουργία γραφικών μόνο", "Πώληση προϊόντων", "Δημιουργία χρήσιμου περιεχομένου για το κοινό", "Αγορές online"], correct: 2 },
-        { q: "Ποιο από τα παρακάτω είναι χαρακτηριστικό “call to action” (CTA);", a: ["Καλημέρα", "Πώς είστε;", "Πατήστε εδώ για περισσότερα", "Ο καιρός σήμερα είναι καλός"], correct: 2 },
-        { q: "Τι είναι το social listening;", a: ["Παρακολούθηση τηλεόρασης", "Ανάλυση συζητήσεων και σχολίων για το brand", "Παρακολούθηση μουσικής", "Ανάγνωση βιβλίων"], correct: 1 },
-        { q: "Τι κάνει το εργαλείο Canva;", a: ["Κάνει αναρτήσεις αυτόματα", "Δημιουργεί γραφικά και οπτικό περιεχόμενο", "Παρακολουθεί analytics", "Διαγράφει posts"], correct: 1 },
-        { q: "Ποια πλατφόρμα είναι πιο κατάλληλη για B2B marketing;", a: ["Instagram", "TikTok", "LinkedIn", "Snapchat"], correct: 2 },
-        { q: "Ποιο εργαλείο χρησιμοποιείται για προγραμματισμό αναρτήσεων;", a: ["Netflix", "Word", "Hootsuite", "Excel"], correct: 2 },
-        { q: "Ποια μορφή περιεχομένου έχει συνήθως περισσότερη αλληλεπίδραση;", a: ["Κείμενο μόνο", "Διαγράμματα", "Βίντεο και εικόνες", "Λίστες προϊόντων"], correct: 2 },
-        { q: "Ποιο είναι σημαντικότερο στοιχείο ενός επιτυχημένου post;", a: ["Ημερομηνία γενεθλίων", "Ο ελκυστικός τίτλος ή εικόνα", "Το μέγεθος των κουμπιών", "Η τιμή ενός προϊόντος"], correct: 1 },
-        { q: "Ποιο είναι βασικό πλεονέκτημα της χρήσης Instagram Stories;", a: ["Μένουν για πάντα", "Δεν αλληλεπιδρά κανείς", "Δημιουργούν αίσθηση άμεσης επικοινωνίας", "Μπορούν να ανεβαίνουν μόνο διαφημίσεις"], correct: 2 },
-        { q: "Τι είναι ένα micro-influencer;", a: ["Ρομπότ", "Άτομο με μικρό αλλά πιστό κοινό", "Κάποιος με εκατομμύρια followers", "Κωδικός εφαρμογής"], correct: 1 },
-        { q: "Ποιο από τα παρακάτω βοηθά στον SEO μέσω social media;", a: ["Αποφυγή κοινοποιήσεων", "Κοινοποίηση άρθρων με links", "Δημοσίευση χωρίς κείμενο", "Σβήσιμο παλαιών αναρτήσεων"], correct: 1 },
-        { q: "Τι είναι το UGC (User Generated Content);", a: ["Περιεχόμενο από bots", "Διαφημίσεις Google", "Περιεχόμενο που δημιουργείται από χρήστες/πελάτες", "Διαφημιστικά πανό"], correct: 2 },
-        { q: "Ποια πλατφόρμα χρησιμοποιείται ευρέως για visual content και ιδέες;", a: ["Twitter", "Pinterest", "Skype", "Reddit"], correct: 1 },
-        { q: "Ποιο από τα παρακάτω ΔΕΝ είναι στόχος του social media marketing;", a: ["Αύξηση brand awareness", "Ανάπτυξη λογισμικού", "Δημιουργία σχέσεων με πελάτες", "Πώληση προϊόντων"], correct: 1 },
-        { q: "Τι είναι το Facebook Pixel;", a: ["Είδος ανάλυσης φωτογραφιών", "Εικόνα εξωφύλλου", "Κώδικας για παρακολούθηση συμπεριφοράς επισκεπτών", "Επέκταση προφίλ"], correct: 2 },
-        { q: "Τι είναι το “boost post” στο Facebook;", a: ["Δωρεάν τρόπος μετάδοσης", "Πληρωμένη προώθηση δημοσίευσης", "Διαγραφή περιεχομένου", "Ανάρτηση στον τοίχο φίλου"], correct: 1 },
-        { q: "Ποια είναι η λειτουργία των analytics στα social media;", a: ["Δημιουργία memes", "Αναπαραγωγή βίντεο", "Μέτρηση και αξιολόγηση απόδοσης περιεχομένου", "Διαγραφή αρνητικών σχολίων"], correct: 2 },
-        { q: "Ποιο περιεχόμενο αποδίδει περισσότερο στο TikTok;", a: ["Φωτογραφίες προϊόντων", "Χιουμοριστικά ή δημιουργικά σύντομα βίντεο", "Ακαδημαϊκά άρθρα", "PowerPoint παρουσιάσεις"], correct: 1 },
-        { q: "Τι σημαίνει brand awareness;", a: ["Αναγνώριση προσώπων", "Αναγνωρισιμότητα μάρκας από το κοινό", "Τιμή προϊόντων", "Συγκρίσεις ανταγωνιστών"], correct: 1 },
-        { q: "Τι είναι τα impressions;", a: ["Μόνο τα likes", "Πόσες φορές εμφανίστηκε ένα post σε οθόνες", "Σχόλια αναγνωστών", "Πωλήσεις ημερησίως"], correct: 1 },
-        { q: "Ποιος είναι ο ρόλος του storytelling στο μάρκετινγκ;", a: ["Αναφέρει μόνο γεγονότα", "Παρουσιάζει ιστορίες φίλων", "Συνδέει συναισθηματικά το brand με το κοινό", "Αναλύει δεδομένα"], correct: 2 },
-        { q: "Ποιο είδος ανάρτησης βοηθά στη δημιουργία κοινότητας;", a: ["Προσωπικές αναρτήσεις", "Διάφορες διαφημίσεις", "Αλληλεπιδραστικά post όπως ερωτήσεις/quiz", "Αποφυγή σχολίων"], correct: 2 },
-        { q: "Τι είναι το meme marketing;", a: ["Δημιουργία διαφημιστικών email", "Χρήση χιουμοριστικού περιεχομένου με memes για προώθηση", "Εκτύπωση αφισών", "Πώληση θεμάτων"], correct: 1 },
-        { q: "Ποια είναι καλή πρακτική για χτίσιμο εμπιστοσύνης στο κοινό;", a: ["Απόκρυψη πληροφοριών", "Ειλικρίνεια και άμεσες απαντήσεις σε σχόλια", "Μπλοκάρισμα followers", "Αυτόματη ανάρτηση διαφημίσεων"], correct: 1 },
-        { q: "Τι σημαίνει “reach” σε μια ανάρτηση;", a: ["Πόσα likes είχε", "Πόσοι διαφορετικοί χρήστες την είδαν", "Ποιο hashtag χρησιμοποιήθηκε", "Πόσα emoticons γράφτηκαν"], correct: 1 },
-        { q: "Ποια είναι η κύρια χρήση του Instagram Reels;", a: ["Δημοσίευση άρθρων", "Συνομιλία με φίλους", "Δημιουργία σύντομων βίντεο για προβολή", "Δημιουργία infographics"], correct: 2 },
-        { q: "Ποιο χαρακτηριστικό κάνει ένα post “viral”;", a: ["Το μέγεθος της γραμματοσειράς", "Το όνομα του χρήστη", "Η ταχύτερη διάδοσή του στο κοινό", "Η γεωγραφική του προέλευση"], correct: 2 },
-        { q: "Ποια είναι βασική αρχή δημιουργίας περιεχομένου;", a: ["Μονότονη παρουσίαση", "Υπερβολικά hashtags", "Αξία προς το κοινό", "Τυχαίες δημοσιεύσεις"], correct: 2 },
-        { q: "Τι σημαίνει conversion rate;", a: ["Ημερομηνία ανάρτησης", "Μήκος περιεχομένου", "Ποσοστό επισκεπτών που έκαναν επιθυμητή ενέργεια", "Χρώμα φόντου"], correct: 2 },
-        { q: "Ποια στρατηγική χρησιμοποιείται για να κρατηθεί η συνέπεια στις αναρτήσεις;", a: ["Αυθόρμητη ανάρτηση", "Ανάρτηση μια φορά το μήνα", "Δημιουργία ημερολογίου περιεχομένου", "Αντιγραφή ανταγωνιστών"], correct: 2 },
-        { q: "Ποια τακτική μπορεί να αυξήσει το loyalty (αφοσίωση);", a: ["Πολλές διαφημίσεις", "Αδιαφορία σε σχόλια", "Απαντήσεις και ευχαριστίες στους followers", "Κρυφές τιμές"], correct: 2 },
-        { q: "Ποιο είναι βασικό πλεονέκτημα των paid ads;", a: ["Αφαιρούν σχόλια", "Στοχεύουν συγκεκριμένο κοινό", "Δημιουργούν τυχαίες πωλήσεις", "Μειώνουν το engagement"], correct: 1 },
-        { q: "Ποιο εργαλείο είναι κατάλληλο για Instagram insights;", a: ["Adobe Reader", "WordPress", "Instagram Analytics", "Google Forms"], correct: 2 },
-        { q: "Ποια είναι η σημασία των σχολίων στις δημοσιεύσεις;", a: ["Δεν έχουν σημασία", "Αυξάνουν την απήχηση και ενισχύουν τη σχέση με το κοινό", "Πρέπει να σβήνονται", "Είναι διακοσμητικά"], correct: 1 },
-        { q: "Τι βοηθά στη διατήρηση καλής φήμης στα social media;", a: ["Αποφυγή επικοινωνίας", "Υποσχέσεις χωρίς εκπλήρωση", "Ειλικρινής επικοινωνία και συνέπεια", "Απόκρυψη αρνητικών σχολίων"], correct: 2 }
-    ];
-
-    let questions = [];
-    let currentQuestionIndex = 0;
-    let score = 0;
-    let selectedOption = null;
-
-    function initQuiz() {
-        questions = allQuestions.sort(() => Math.random() - 0.5);
-        currentQuestionIndex = 0;
-        score = 0;
-        showQuestion();
-    }
-
-    function showQuestion() {
-        selectedOption = null;
-        document.getElementById('next-btn').disabled = true;
-        const qData = questions[currentQuestionIndex];
-        document.getElementById('progress').innerText = `Ερώτηση ${currentQuestionIndex + 1} από ${questions.length}`;
-        document.getElementById('question-text').innerText = qData.q;
-        
-        const optionsDiv = document.getElementById('options-list');
-        optionsDiv.innerHTML = '';
-        
-        qData.a.forEach((opt, index) => {
-            const div = document.createElement('div');
-            div.className = 'option';
-            div.innerText = opt;
-            div.onclick = () => selectOption(div, index);
-            optionsDiv.appendChild(div);
-        });
-    }
-
-    function selectOption(element, index) {
-        const options = document.querySelectorAll('.option');
-        options.forEach(opt => opt.classList.remove('selected'));
-        element.classList.add('selected');
-        selectedOption = index;
-        document.getElementById('next-btn').disabled = false;
-    }
-
-    function nextQuestion() {
-        if (selectedOption === questions[currentQuestionIndex].correct) {
-            score++;
-        }
-        
-        currentQuestionIndex++;
-        if (currentQuestionIndex < questions.length) {
-            showQuestion();
-        } else {
-            showResults();
-        }
-    }
-
-    function showResults() {
-        const container = document.getElementById('quiz-container');
-        container.innerHTML = `
-            <div class="result-screen">
-                <h2>Το κουίζ ολοκληρώθηκε!</h2>
-                <div class="score">${score} / ${questions.length}</div>
-                <p>Σωστά απαντημένες ερωτήσεις.</p>
-                <button id="restart-btn" onclick="location.reload()">Επανεκκίνηση</button>
-            </div>
-        `;
-    }
-
-    initQuiz();
-</script>
-
-</body>
-</html>
+        { q: "Τι σημαίνει ROI στο Social
